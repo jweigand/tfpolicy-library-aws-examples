@@ -33,7 +33,7 @@ resource_policy "aws_s3_bucket" "test" {
   enforce {
     condition     = true == true
     error_message = "test"
-    info_message  = "MRAP: ${local.mrap.details.name}"
+    info_message  = "MRAP: ${local.mrap[0].details[0].name}"
   }
 
 }
