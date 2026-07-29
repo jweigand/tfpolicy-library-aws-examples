@@ -37,7 +37,6 @@ resource_policy "aws_s3_bucket" "delete_protection" {
     })
 
     multi_region_access_point = core::try(core::getdatasource("aws_s3control_multi_region_access_points", {
-      bucket = local.bucket
     }), null)
 
     # Check for any objects in the bucket; max_keys = 1 limits the API call to a single key for efficiency.
