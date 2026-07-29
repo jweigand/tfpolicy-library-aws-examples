@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "terraform-policy": {
+      "source": "hashicorp/agent-skills",
+      "sourceType": "github",
+      "skillPath": "terraform/policy/skills/terraform-policy/SKILL.md",
+      "computedHash": "0114a78007e038eabb57114977e7e403008a2b943e58724b16baeec6eb65babc"
+    }
+  }
+}
