@@ -66,7 +66,7 @@ resource_policy "aws_s3_bucket" "delete_protection" {
   enforce {
     condition     = !local.has_access_point
     error_message = "S3 bucket '${local.bucket}' cannot be deleted: it is referenced by an aws_s3control_access_points data source. Remove or reassociate the access point before deleting the bucket."
-    info_message  = "access points output ${jsonencode(local.access_point)}"
+    info_message  = "access points output ${core::jsonencode(local.access_point)}"
   }
 
   enforce {
