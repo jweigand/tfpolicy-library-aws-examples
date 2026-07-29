@@ -10,6 +10,13 @@ resource "aws_s3_bucket" "clean_bucket" {
   }
 }
 
+data "aws_s3control_access_points" "clean_bucket" {
+  attrs = {
+    bucket        = "my-clean-bucket"
+    access_points = null
+  }
+}
+
 data "aws_s3_objects" "clean_bucket" {
   attrs = {
     bucket = "my-clean-bucket"

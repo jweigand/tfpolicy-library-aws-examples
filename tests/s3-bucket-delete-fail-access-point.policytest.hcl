@@ -12,7 +12,8 @@ resource "aws_s3_bucket" "access_point_bucket" {
 
 data "aws_s3control_access_points" "access_point_bucket" {
   attrs = {
-    bucket = "my-access-point-bucket"
+    bucket        = "my-access-point-bucket"
+    access_points = [{ name = "my-access-point" }]
   }
 }
 

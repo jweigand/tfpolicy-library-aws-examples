@@ -32,9 +32,9 @@ resource_policy "aws_s3_bucket" "delete_protection" {
       bucket = local.bucket
     }), null)
 
-    access_point = core::try(core::getdatasource("aws_s3control_access_points", {
+    access_point = core::getdatasource("aws_s3control_access_points", {
       bucket = local.bucket
-    }), null)
+    })
 
     multi_region_access_point = core::try(core::getdatasource("aws_s3control_multi_region_access_points", {
       bucket = local.bucket
@@ -46,36 +46,35 @@ resource_policy "aws_s3_bucket" "delete_protection" {
       max_keys = 1
     }), null)
 
-    has_object_lock_config        = local.object_lock_config != null
-    has_replication_config        = local.replication_config != null
-    has_access_point              = local.access_point != null
-    has_multi_region_access_point = local.multi_region_access_point != null
-    has_objects                   = local.bucket_objects != null && core::length(core::try(local.bucket_objects.keys, [])) > 0
   }
 
   enforce {
-    condition     = !local.has_object_lock_config
+    condition     = local.object_lock_config == null
     error_message = "S3 bucket '${local.bucket}' cannot be deleted: it is referenced by an aws_s3_bucket_object_lock_configuration data source. Remove or update the object lock configuration before deleting the bucket."
+    info_message  = "object lock config output ${core::jsonencode(local.object_lock_config)}"
   }
 
   enforce {
-    condition     = !local.has_replication_config
+    condition     = local.replication_config == null
     error_message = "S3 bucket '${local.bucket}' cannot be deleted: it is referenced by an aws_s3_bucket_replication_configuration data source. Remove or update the replication configuration before deleting the bucket."
+    info_message  = "replication config output ${core::jsonencode(local.replication_config)}"
   }
 
   enforce {
-    condition     = !local.has_access_point
+    condition     = local.access_point.access_points == null
     error_message = "S3 bucket '${local.bucket}' cannot be deleted: it is referenced by an aws_s3control_access_points data source. Remove or reassociate the access point before deleting the bucket."
     info_message  = "access points output ${core::jsonencode(local.access_point)}"
   }
 
   enforce {
-    condition     = !local.has_multi_region_access_point
+    condition     = local.multi_region_access_point == null
     error_message = "S3 bucket '${local.bucket}' cannot be deleted: it is referenced by an aws_s3control_multi_region_access_points data source. Remove or reassociate the multi-region access point before deleting the bucket."
+    info_message  = "multi-region access point output ${core::jsonencode(local.multi_region_access_point)}"
   }
 
   enforce {
-    condition     = !local.has_objects
+    condition     = local.bucket_objects == null || core::length(core::try(local.bucket_objects.keys, [])) == 0
     error_message = "S3 bucket '${local.bucket}' cannot be deleted: the bucket still contains objects. Empty the bucket before deleting it."
+    info_message  = "bucket objects output ${core::jsonencode(local.bucket_objects)}"
   }
 }
