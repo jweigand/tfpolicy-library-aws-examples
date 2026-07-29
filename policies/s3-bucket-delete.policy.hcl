@@ -17,6 +17,14 @@
 # NOTE: This policy fires only on destroy operations. prior_attrs.bucket holds
 # the bucket name as it existed before the destroy was planned.
 
+# Collect all aws_s3control_multi_region_access_point resources in the plan once.
+# The name is nested inside details[0].name so a flat filter cannot be used;
+# instead we fetch all and match by name inside the resource_policy below.
+locals {
+  all_mrap_resources = core::getresources("aws_s3control_multi_region_access_point", {})
+  mrap_names_being_deleted = [for r in local.all_mrap_resources : core::try(r.details[0].name, "")]
+}
+
 resource_policy "aws_s3_bucket" "delete_protection" {
   operations = ["delete"]
 
@@ -43,15 +51,9 @@ resource_policy "aws_s3_bucket" "delete_protection" {
     # Names of MRAPs that reference this bucket via their regions list.
     referencing_mrap_names = [for ap in local.multi_region_access_point.access_points : ap.name if core::length([for r in ap.regions : r if r.bucket == local.bucket]) > 0]
 
-    # For each referencing MRAP name, check if there is a corresponding
-    # aws_s3control_multi_region_access_point resource in the plan being deleted.
-    # NOTE: core::getresources() is scoped to delete operations in this policy, so
-    # only resources planned for destruction are returned.
-    mrap_resources_being_deleted = [for name in local.referencing_mrap_names : core::getresources("aws_s3control_multi_region_access_point", { name = name })]
-
-    # A referencing MRAP is "covered" if getresources() returns at least one match.
-    # Block only if any referencing MRAP is NOT being deleted in the same plan.
-    uncovered_mrap_names = [for i, name in local.referencing_mrap_names : name if core::length(local.mrap_resources_being_deleted[i]) == 0]
+    # A referencing MRAP is "covered" if its name appears in the top-level list of
+    # aws_s3control_multi_region_access_point resources being deleted in this plan.
+    uncovered_mrap_names = [for name in local.referencing_mrap_names : name if !core::contains(local.mrap_names_being_deleted, name)]
 
     # Check for any objects in the bucket; max_keys = 1 limits the API call to a single key for efficiency.
     bucket_objects = core::getdatasource("aws_s3_objects", {
