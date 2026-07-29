@@ -22,6 +22,16 @@ locals {
   mrap_names_being_deleted = [for r in local.all_mrap_resources : core::try(r.details[0].name, "")]
 }
 
+resource_policy "aws_s3_bucket" "test" {
+
+  enforce {
+    condition = true == true
+
+    info_message = "all MRAP: ${core::jsonencode(local.all_mrap_resources)} | MRAP names being deleted: ${core::jsonencode(local.mrap_names_being_deleted)}"
+  }
+
+}
+
 resource_policy "aws_s3_bucket" "delete_protection" {
   operations = ["delete"]
 
