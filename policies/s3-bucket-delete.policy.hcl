@@ -37,6 +37,7 @@ resource_policy "aws_s3_bucket" "delete_protection" {
     })
 
     multi_region_access_point = core::getdatasource("aws_s3control_multi_region_access_points", {
+      region = "us-west-2" # required region for this AWS API Endpoint: https://docs.aws.amazon.com/AmazonS3/latest/userguide/MrapOperations.html
     })
 
     # Check for any objects in the bucket; max_keys = 1 limits the API call to a single key for efficiency.
