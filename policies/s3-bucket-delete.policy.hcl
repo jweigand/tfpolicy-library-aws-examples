@@ -67,8 +67,10 @@ resource_policy "aws_s3_bucket" "delete_protection" {
   }
 
   enforce {
-    condition     = local.multi_region_access_point == null
-    error_message = "S3 bucket '${local.bucket}' cannot be deleted: it is referenced by an aws_s3control_multi_region_access_points data source. Remove or reassociate the multi-region access point before deleting the bucket."
+    # The data source returns all MRAPs for the account; search access_points[*].regions[*].bucket
+    # for a match against the bucket being deleted.
+    condition     = core::length([for ap in local.multi_region_access_point.access_points : ap if core::length([for r in ap.regions : r if r.bucket == local.bucket]) > 0]) == 0
+    error_message = "S3 bucket '${local.bucket}' cannot be deleted: it is referenced by a multi-region access point. Remove or reassociate the multi-region access point before deleting the bucket."
     info_message  = "multi-region access point output ${core::jsonencode(local.multi_region_access_point)}"
   }
 
