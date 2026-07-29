@@ -27,7 +27,7 @@ resource_policy "aws_s3_bucket" "test" {
   enforce {
     condition     = true == true
     error_message = "test"
-    info_message  = "all MRAP: ${core::jsonencode(local.all_mrap_resources)} | MRAP names being deleted: ${core::jsonencode(local.mrap_names_being_deleted)}"
+    info_message  = "MRAP names being deleted: ${core::jsonencode(local.mrap_names_being_deleted)}"
   }
 
 }
