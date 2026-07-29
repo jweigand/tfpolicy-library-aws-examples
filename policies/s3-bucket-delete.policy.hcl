@@ -21,7 +21,7 @@
 # The name is nested inside details[0].name so a flat filter cannot be used;
 # instead we fetch all and match by name inside the resource_policy below.
 locals {
-  all_mrap_resources = core::getresources("aws_s3control_multi_region_access_point", {})
+  all_mrap_resources       = core::getresources("aws_s3control_multi_region_access_point", {})
   mrap_names_being_deleted = [for r in local.all_mrap_resources : core::try(r.details[0].name, "")]
 }
 
@@ -86,7 +86,7 @@ resource_policy "aws_s3_bucket" "delete_protection" {
     # being deleted in the same plan.
     condition     = core::length(local.uncovered_mrap_names) == 0
     error_message = "S3 bucket '${local.bucket}' cannot be deleted: it is referenced by multi-region access point(s) that are not being deleted in this plan: ${core::jsonencode(local.uncovered_mrap_names)}. Remove or reassociate those access points before deleting the bucket."
-    info_message  = "multi-region access point output ${core::jsonencode(local.multi_region_access_point)}"
+    info_message  = "multi-region access point output ${core::jsonencode(local.multi_region_access_point)} | all MRAP: ${core::jsonencode(local.all_mrap_resources)} | MRAP names being deleted: ${core::jsonencode(local.mrap_names_being_deleted)}"
   }
 
   enforce {
