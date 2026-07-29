@@ -88,7 +88,7 @@ resource_policy "aws_s3_bucket" "delete_protection" {
   enforce {
     condition     = local.object_lock_config == null
     error_message = "S3 bucket '${local.bucket}' cannot be deleted: it is referenced by an aws_s3_bucket_object_lock_configuration data source. Remove or update the object lock configuration before deleting the bucket."
-    info_message  = "object lock config output ${core::jsonencode(local.object_lock_config)} | MRAP: ${local.mrap[0].details[0].name}}"
+    info_message  = "object lock config output ${core::jsonencode(local.object_lock_config)} | MRAP: ${length(local.mrap)}"
   }
 
   enforce {
