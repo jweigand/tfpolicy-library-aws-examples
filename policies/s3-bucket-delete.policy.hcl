@@ -40,6 +40,19 @@ resource_policy "aws_s3_bucket" "delete_protection" {
       region = "us-west-2" # required region for this AWS API Endpoint: https://docs.aws.amazon.com/AmazonS3/latest/userguide/MrapOperations.html
     })
 
+    # Names of MRAPs that reference this bucket via their regions list.
+    referencing_mrap_names = [for ap in local.multi_region_access_point.access_points : ap.name if core::length([for r in ap.regions : r if r.bucket == local.bucket]) > 0]
+
+    # For each referencing MRAP name, check if there is a corresponding
+    # aws_s3control_multi_region_access_point resource in the plan being deleted.
+    # NOTE: core::getresources() is scoped to delete operations in this policy, so
+    # only resources planned for destruction are returned.
+    mrap_resources_being_deleted = [for name in local.referencing_mrap_names : core::getresources("aws_s3control_multi_region_access_point", { name = name })]
+
+    # A referencing MRAP is "covered" if getresources() returns at least one match.
+    # Block only if any referencing MRAP is NOT being deleted in the same plan.
+    uncovered_mrap_names = [for i, name in local.referencing_mrap_names : name if core::length(local.mrap_resources_being_deleted[i]) == 0]
+
     # Check for any objects in the bucket; max_keys = 1 limits the API call to a single key for efficiency.
     bucket_objects = core::getdatasource("aws_s3_objects", {
       bucket   = local.bucket
@@ -67,10 +80,10 @@ resource_policy "aws_s3_bucket" "delete_protection" {
   }
 
   enforce {
-    # The data source returns all MRAPs for the account; search access_points[*].regions[*].bucket
-    # for a match against the bucket being deleted.
-    condition     = core::length([for ap in local.multi_region_access_point.access_points : ap if core::length([for r in ap.regions : r if r.bucket == local.bucket]) > 0]) == 0
-    error_message = "S3 bucket '${local.bucket}' cannot be deleted: it is referenced by a multi-region access point. Remove or reassociate the multi-region access point before deleting the bucket."
+    # Pass if no MRAPs reference this bucket, or if all referencing MRAPs are also
+    # being deleted in the same plan.
+    condition     = core::length(local.uncovered_mrap_names) == 0
+    error_message = "S3 bucket '${local.bucket}' cannot be deleted: it is referenced by multi-region access point(s) that are not being deleted in this plan: ${core::jsonencode(local.uncovered_mrap_names)}. Remove or reassociate those access points before deleting the bucket."
     info_message  = "multi-region access point output ${core::jsonencode(local.multi_region_access_point)}"
   }
 
