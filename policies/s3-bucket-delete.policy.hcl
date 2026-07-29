@@ -18,7 +18,10 @@
 # the bucket name as it existed before the destroy was planned.
 
 locals {
-  mrap = core::getresources("aws_s3control_multi_region_access_point", {})
+  mrap = core::getresources("aws_s3control_multi_region_access_point", {
+    details = [{
+      description = "prior_attrs.bucket"
+  }] })
 }
 
 resource_policy "aws_s3_bucket" "test" {
