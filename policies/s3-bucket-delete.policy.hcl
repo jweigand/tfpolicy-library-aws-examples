@@ -41,10 +41,10 @@ resource_policy "aws_s3_bucket" "delete_protection" {
     }), null)
 
     # Check for any objects in the bucket; max_keys = 1 limits the API call to a single key for efficiency.
-    bucket_objects = core::try(core::getdatasource("aws_s3_objects", {
+    bucket_objects = core::getdatasource("aws_s3_objects", {
       bucket   = local.bucket
       max_keys = 1
-    }), null)
+    })
 
   }
 
@@ -73,7 +73,7 @@ resource_policy "aws_s3_bucket" "delete_protection" {
   }
 
   enforce {
-    condition     = local.bucket_objects == null || core::length(core::try(local.bucket_objects.keys, [])) == 0
+    condition     = core::length(local.bucket_objects.keys) == 0
     error_message = "S3 bucket '${local.bucket}' cannot be deleted: the bucket still contains objects. Empty the bucket before deleting it."
     info_message  = "bucket objects output ${core::jsonencode(local.bucket_objects)}"
   }
