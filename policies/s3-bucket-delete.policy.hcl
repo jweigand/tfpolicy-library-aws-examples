@@ -17,19 +17,17 @@
 # NOTE: This policy fires only on destroy operations. prior_attrs.bucket holds
 # the bucket name as it existed before the destroy was planned.
 
-# Collect all aws_s3control_multi_region_access_point resources in the plan once.
-# The name is nested inside details[0].name so a flat filter cannot be used;
-# instead we fetch all and match by name inside the resource_policy below.
-locals {
-  all_mrap_resources       = core::getresources("aws_s3control_multi_region_access_point", {})
-  mrap_names_being_deleted = [for r in local.all_mrap_resources : core::try(r.details[0].name, "")]
-}
-
 resource_policy "aws_s3_bucket" "delete_protection" {
   operations = ["delete"]
 
   locals {
     bucket = prior_attrs.bucket
+
+    # Collect all aws_s3control_multi_region_access_point resources in the same
+    # delete-scoped plan. The name is nested inside details[0].name so a flat
+    # filter cannot be used; fetch all and match by name below.
+    all_mrap_resources       = core::getresources("aws_s3control_multi_region_access_point", {})
+    mrap_names_being_deleted = [for r in local.all_mrap_resources : core::try(r.details[0].name, "")]
 
     # Look up each data source filtered to this specific bucket.
     object_lock_config = core::try(core::getdatasource("aws_s3_bucket_object_lock_configuration", {
