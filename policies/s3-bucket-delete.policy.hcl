@@ -17,6 +17,11 @@
 # NOTE: This policy fires only on destroy operations. prior_attrs.bucket holds
 # the bucket name as it existed before the destroy was planned.
 
+locals {
+  all_mrap_resources       = core::getresources("aws_s3control_multi_region_access_point", {})
+  mrap_names_being_deleted = [for r in local.all_mrap_resources : core::try(r.details[0].name, "")]
+}
+
 resource_policy "aws_s3_bucket" "delete_protection" {
   operations = ["delete"]
 
@@ -26,8 +31,7 @@ resource_policy "aws_s3_bucket" "delete_protection" {
     # Collect all aws_s3control_multi_region_access_point resources in the same
     # delete-scoped plan. The name is nested inside details[0].name so a flat
     # filter cannot be used; fetch all and match by name below.
-    all_mrap_resources       = core::getresources("aws_s3control_multi_region_access_point", {})
-    mrap_names_being_deleted = [for r in local.all_mrap_resources : core::try(r.details[0].name, "")]
+
 
     # Look up each data source filtered to this specific bucket.
     object_lock_config = core::try(core::getdatasource("aws_s3_bucket_object_lock_configuration", {
@@ -64,7 +68,7 @@ resource_policy "aws_s3_bucket" "delete_protection" {
   enforce {
     condition     = local.object_lock_config == null
     error_message = "S3 bucket '${local.bucket}' cannot be deleted: it is referenced by an aws_s3_bucket_object_lock_configuration data source. Remove or update the object lock configuration before deleting the bucket."
-    info_message  = "object lock config output ${core::jsonencode(local.object_lock_config)}"
+    info_message  = "object lock config output ${core::jsonencode(local.object_lock_config)} | | all MRAP: ${core::jsonencode(local.all_mrap_resources)} | MRAP names being deleted: ${core::jsonencode(local.mrap_names_being_deleted)}"
   }
 
   enforce {
