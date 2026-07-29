@@ -17,21 +17,23 @@
 # NOTE: This policy fires only on destroy operations. prior_attrs.bucket holds
 # the bucket name as it existed before the destroy was planned.
 
-
+locals {
+  mrap = core::getresources("aws_s3control_multi_region_access_point", {})
+}
 
 resource_policy "aws_s3_bucket" "test" {
-
+  /*
   locals {
     matching_mrap = core::getresources("aws_s3control_multi_region_access_point", {
       details = [{
         description = "attrs.bucket"
     }] })
   }
-
+*/
   enforce {
     condition     = true == true
     error_message = "test"
-    info_message  = "matching MRAP: ${core::jsonencode(local.matching_mrap)}"
+    info_message  = "MRAP: ${local.mrap.details.name}"
   }
 
 }
