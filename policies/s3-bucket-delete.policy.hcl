@@ -23,8 +23,8 @@ resource_policy "aws_s3_bucket" "test" {
 
   locals {
     matching_mrap = core::getresources("aws_s3control_multi_region_access_point", {
-      filter = [{
-        description = attrs.bucket
+      details = [{
+        description = "attrs.bucket"
     }] })
   }
 
