@@ -74,7 +74,10 @@ resource_policy "aws_s3_bucket" "delete_checks_access_points" {
 
   enforce {
     condition     = local.access_point.access_points == null
-    error_message = "S3 bucket '${local.bucket}' cannot be deleted: it is referenced by an aws_s3control_access_points data source. Remove or reassociate the access point before deleting the bucket."
+    error_message = <<-EOT
+    S3 bucket '${local.bucket}' cannot be deleted because it is referenced by the following access point(s):
+    ${core::join("", [for ap in local.access_point.access_points : core::yamlencode({ (ap.name) = { access_point_arn = ap.access_point_arn, alias = ap.alias } })])}
+    EOT
     info_message  = "access points output ${core::jsonencode(local.access_point)}"
   }
 
