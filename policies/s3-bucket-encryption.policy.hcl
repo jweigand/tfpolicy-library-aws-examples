@@ -1,4 +1,5 @@
 resource_policy "aws_s3_bucket" "require_encryption" {
+  enforcement_level = "mandatory_overridable"
   locals {
     encryption_config = core::getresources("aws_s3_bucket_server_side_encryption_configuration", {
       bucket = attrs.bucket
