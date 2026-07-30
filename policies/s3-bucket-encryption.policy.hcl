@@ -7,6 +7,6 @@ resource_policy "aws_s3_bucket" "require_encryption" {
   }
   enforce {
     condition     = local.is_encrypted
-    error_message = "S3 bucket ${attrs.bucket} must be encrypted using 'aws_s3_bucket_server_side_encryption_configuration'."
+    error_message = "S3 bucket must be encrypted using 'aws_s3_bucket_server_side_encryption_configuration'."
   }
 }
