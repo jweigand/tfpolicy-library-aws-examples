@@ -66,9 +66,11 @@ resource_policy "aws_s3_bucket" "delete_checks_access_points" {
       bucket = local.bucket
     })
 
-    multi_region_access_point = core::getdatasource("aws_s3control_multi_region_access_points", {
+    all_multi_region_access_points = core::getdatasource("aws_s3control_multi_region_access_points", {
       region = "us-west-2" # required region for this AWS API Endpoint: https://docs.aws.amazon.com/AmazonS3/latest/userguide/MrapOperations.html
     })
+
+    referenced_multi_region_access_points = [for mrap in local.all_multi_region_access_points.access_points : mrap if core::length([for r in mrap.regions : r if r.bucket == local.bucket]) > 0]
   }
 
   enforce {
@@ -80,10 +82,11 @@ resource_policy "aws_s3_bucket" "delete_checks_access_points" {
   # The data source returns all MRAPs for the account; search access_points[*].regions[*].bucket
   # for a match against the bucket being deleted.
   enforce {
-    condition     = core::length([for ap in local.multi_region_access_point.access_points : ap if core::length([for r in ap.regions : r if r.bucket == local.bucket]) > 0]) == 0
+    condition     = core::length(local.referenced_multi_region_access_points) == 0
     error_message = <<EOT
     S3 bucket '${local.bucket}' cannot be deleted. it is referenced the following multi-region access point(s). Remove or reassociate the multi-region access point before deleting the bucket.
-    ${core::jsonencode({ for mrap in local.multi_region_access_point.access_points : mrap.name => mrap.alias })}
+    ${core::jsonencode({ for mrap in local.referenced_multi_region_access_points.access_points : mrap.name => mrap.alias })}
+    info_message = core::jsonencode(local.referenced_multi_region_access_points)
     EOT
   }
 }
