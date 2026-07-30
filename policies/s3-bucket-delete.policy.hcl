@@ -86,7 +86,8 @@ resource_policy "aws_s3_bucket" "delete_checks_access_points" {
     error_message = <<EOT
     S3 bucket '${local.bucket}' cannot be deleted. it is referenced the following multi-region access point(s). Remove or reassociate the multi-region access point before deleting the bucket.
     ${core::jsonencode({ for mrap in local.referenced_multi_region_access_points.access_points : mrap.name => mrap.alias })}
-    info_message = core::jsonencode(local.referenced_multi_region_access_points)
-    EOT
+        EOT
+    info_message  = core::jsonencode(local.referenced_multi_region_access_points)
+
   }
 }
