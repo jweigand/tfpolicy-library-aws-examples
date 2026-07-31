@@ -64,6 +64,8 @@ resource_policy "aws_s3_bucket" "delete_checks_access_points" {
       bucket = local.bucket
     })
 
+    referenced_access_points = local.access_point.access_points == null ? [] : local.access_point.access_points
+
     all_multi_region_access_points = core::getdatasource("aws_s3control_multi_region_access_points", {
       region = "us-west-2" # required region for this AWS API Endpoint: https://docs.aws.amazon.com/AmazonS3/latest/userguide/MrapOperations.html
     })
@@ -72,10 +74,10 @@ resource_policy "aws_s3_bucket" "delete_checks_access_points" {
   }
 
   enforce {
-    condition     = local.access_point.access_points == null
+    condition     = core::length(local.referenced_access_points) == 0
     error_message = <<-EOT
     S3 bucket '${local.bucket}' cannot be deleted because it is referenced by the following access point(s):
-    ${local.access_point.access_points != null ? core::join("", [for ap in local.access_point.access_points : core::yamlencode({ (ap.name) = { access_point_arn = ap.access_point_arn, alias = ap.alias } })]) : ""}
+    ${core::join("", [for ap in local.referenced_access_points : core::yamlencode({ (ap.name) = { access_point_arn = ap.access_point_arn, alias = ap.alias } })])}
     EOT
     info_message  = core::jsonencode(local.access_point)
   }
