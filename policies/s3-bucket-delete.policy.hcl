@@ -48,7 +48,7 @@ resource_policy "aws_s3_bucket" "delete_checks_base" {
   }
 
   enforce {
-    condition     = local.bucket_objects == null || core::length(local.bucket_objects.keys) == 0
+    condition     = local.bucket_objects == null ? true : core::length(local.bucket_objects.keys) == 0
     error_message = "S3 bucket '${local.bucket}' cannot be deleted because it still contains objects."
   }
 }
