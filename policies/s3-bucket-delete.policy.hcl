@@ -33,7 +33,7 @@ resource_policy "aws_s3_bucket" "delete_checks_base" {
     bucket_objects = core::try(core::getdatasource("aws_s3_objects", {
       bucket   = local.bucket
       max_keys = 1
-    }), 0)
+    }), null)
   }
 
   enforce {
@@ -48,7 +48,7 @@ resource_policy "aws_s3_bucket" "delete_checks_base" {
   }
 
   enforce {
-    condition     = core::length(local.bucket_objects.keys) == 0
+    condition     = local.bucket_objects == null || core::length(local.bucket_objects.keys) == 0
     error_message = "S3 bucket '${local.bucket}' cannot be deleted because it still contains objects."
   }
 }
@@ -64,7 +64,7 @@ resource_policy "aws_s3_bucket" "delete_checks_access_points" {
       bucket = local.bucket
     }), null)
 
-    referenced_access_points = local.access_point.access_points == null ? [] : local.access_point.access_points
+    referenced_access_points = local.access_point == null ? [] : local.access_point.access_points == null ? [] : local.access_point.access_points
 
     all_multi_region_access_points = core::getdatasource("aws_s3control_multi_region_access_points", {
       region = "us-west-2" # required region for this AWS API Endpoint: https://docs.aws.amazon.com/AmazonS3/latest/userguide/MrapOperations.html
