@@ -79,7 +79,6 @@ resource_policy "aws_s3_bucket" "delete_checks_access_points" {
     S3 bucket '${local.bucket}' cannot be deleted because it is referenced by the following access point(s):
     ${core::join("", [for ap in local.referenced_access_points : core::yamlencode({ (ap.name) = { access_point_arn = ap.access_point_arn, alias = ap.alias } })])}
     EOT
-    info_message  = core::jsonencode(local.access_point)
   }
 
   # The data source returns all MRAPs for the account; search access_points[*].regions[*].bucket
@@ -90,6 +89,5 @@ resource_policy "aws_s3_bucket" "delete_checks_access_points" {
     S3 bucket '${local.bucket}' cannot be deleted because it is referenced by the following multi-region access point(s):
     ${core::join("", [for mrap in local.referenced_multi_region_access_points : core::yamlencode({ (mrap.name) = { alias = mrap.alias, created = mrap.created_at } })])}
     EOT
-    info_message  = core::jsonencode(local.all_multi_region_access_points)
   }
 }
