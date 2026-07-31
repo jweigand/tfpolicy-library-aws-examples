@@ -30,10 +30,10 @@ resource_policy "aws_s3_bucket" "delete_checks_base" {
     }), null)
 
     # Check for any objects in the bucket; max_keys = 1 limits the API call to a single key for efficiency.
-    bucket_objects = core::getdatasource("aws_s3_objects", {
+    bucket_objects = core::try(core::getdatasource("aws_s3_objects", {
       bucket   = local.bucket
       max_keys = 1
-    })
+    }), 0)
   }
 
   enforce {
@@ -60,9 +60,9 @@ resource_policy "aws_s3_bucket" "delete_checks_access_points" {
   locals {
     bucket = prior_attrs.bucket
 
-    access_point = core::getdatasource("aws_s3control_access_points", {
+    access_point = core::try(core::getdatasource("aws_s3control_access_points", {
       bucket = local.bucket
-    })
+    }), null)
 
     referenced_access_points = local.access_point.access_points == null ? [] : local.access_point.access_points
 
