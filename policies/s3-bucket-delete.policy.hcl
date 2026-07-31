@@ -70,7 +70,7 @@ resource_policy "aws_s3_bucket" "delete_checks_access_points" {
       region = "us-west-2" # required region for this AWS API Endpoint: https://docs.aws.amazon.com/AmazonS3/latest/userguide/MrapOperations.html
     })
 
-    referenced_multi_region_access_points = all_multi_region_access_points.access_points == null ? [] : [for mrap in local.all_multi_region_access_points.access_points : mrap if core::length([for r in mrap.regions : r if r.bucket == local.bucket]) > 0]
+    referenced_multi_region_access_points = local.all_multi_region_access_points.access_points == null ? [] : [for mrap in local.all_multi_region_access_points.access_points : mrap if core::length([for r in mrap.regions : r if r.bucket == local.bucket]) > 0]
   }
 
   enforce {
