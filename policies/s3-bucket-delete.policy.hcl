@@ -72,7 +72,7 @@ resource_policy "aws_s3_bucket" "delete_checks_access_points" {
   }
 
   enforce {
-    condition     = local.access_point.access_points == null || core::length(local.access_point.access_points) == 0
+    condition     = local.access_point.access_points == "null" || core::length(local.access_point.access_points) == 0
     error_message = <<-EOT
     S3 bucket '${local.bucket}' cannot be deleted because it is referenced by the following access point(s):
     ${core::join("", [for ap in local.access_point.access_points : core::yamlencode({ (ap.name) = { access_point_arn = ap.access_point_arn, alias = ap.alias } })])}
