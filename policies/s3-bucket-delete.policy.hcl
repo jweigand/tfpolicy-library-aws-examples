@@ -39,7 +39,6 @@ resource_policy "aws_s3_bucket" "delete_checks_base" {
   enforce {
     condition     = local.object_lock_config == null
     error_message = "S3 bucket '${local.bucket}' cannot be deleted because it is configured for object lock."
-    info_message  = "tfe workspace meta: ${core::jsonencode(meta.tfe_workspace)}"
   }
 
   enforce {
