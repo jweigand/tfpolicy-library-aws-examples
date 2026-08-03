@@ -4,7 +4,6 @@
 # of the following data source types:
 #
 #   - aws_s3_bucket_object_lock_configuration
-#   - aws_s3_bucket_replication_configuration
 #   - aws_s3control_access_points
 #   - aws_s3control_multi_region_access_points
 #
