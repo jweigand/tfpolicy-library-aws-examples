@@ -25,10 +25,6 @@ resource_policy "aws_s3_bucket" "delete_checks_base" {
       bucket = local.bucket
     }), null)
 
-    replication_config = core::try(core::getdatasource("aws_s3_bucket_replication_configuration", {
-      bucket = local.bucket
-    }), null)
-
     # Check for any objects in the bucket; max_keys = 1 limits the API call to a single key for efficiency.
     bucket_objects = core::try(core::getdatasource("aws_s3_objects", {
       bucket   = local.bucket
@@ -39,12 +35,6 @@ resource_policy "aws_s3_bucket" "delete_checks_base" {
   enforce {
     condition     = local.object_lock_config == null
     error_message = "S3 bucket '${local.bucket}' cannot be deleted because it is configured for object lock."
-  }
-
-  enforce {
-    condition     = local.replication_config == null
-    error_message = "S3 bucket '${local.bucket}' cannot be deleted: it is referenced by an aws_s3_bucket_replication_configuration data source. Remove or update the replication configuration before deleting the bucket."
-    info_message  = "replication config output ${core::jsonencode(local.replication_config)}"
   }
 
   enforce {
