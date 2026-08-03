@@ -18,12 +18,6 @@ data "aws_s3_bucket_object_lock_configuration" "locked_bucket" {
   }
 }
 
-data "aws_s3_bucket_replication_configuration" "locked_bucket" {
-  attrs = {
-    bucket = "my-locked-bucket"
-  }
-}
-
 data "aws_s3_objects" "locked_bucket" {
   attrs = {
     bucket = "my-locked-bucket"
@@ -41,6 +35,7 @@ data "aws_s3control_access_points" "locked_bucket" {
 
 data "aws_s3control_multi_region_access_points" "locked_bucket" {
   attrs = {
+    region        = "us-west-2"
     access_points = []
   }
 }

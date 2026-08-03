@@ -10,6 +10,9 @@
 # Also prevents deletion if the bucket contains any objects (checked via
 # aws_s3_objects with max_keys = 1 for performance).
 #
+# NOTE: aws_s3_bucket_replication_configuration is intentionally not checked;
+# replication rules do not prevent safe bucket deletion.
+#
 # NOTE: This policy fires only on destroy operations. prior_attrs.bucket holds
 # the bucket name as it existed before the destroy was planned.
 
