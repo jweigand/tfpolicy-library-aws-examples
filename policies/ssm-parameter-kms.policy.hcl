@@ -13,9 +13,15 @@ resource_policy "aws_ssm_parameter" "require_kms_key" {
   enforcement_level = "mandatory"
   filter            = attrs.type == "SecureString"
 
+  locals {
+    kms = core::getdatasource("aws_s3_bucket_object_lock_configuration", {
+      key_id = attrs.key_id
+    })
+  }
+
   enforce {
     condition     = true == false #core::try(attrs.key_id, null) != null && core::try(attrs.key_id, "") != ""
     error_message = "SSM SecureString parameters must specify a customer-managed KMS key via 'key_id'. Leaving it blank defaults to the AWS-managed 'aws/ssm' key."
-    info_message  = "key id = ${attrs.key_id}"
+    info_message  = "key info = ${core::jsonencode(local.kms)}"
   }
 }
