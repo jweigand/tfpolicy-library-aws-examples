@@ -3,21 +3,23 @@ resource_policy "aws_ssm_parameter" "custom_kms_key" {
   filter            = attrs.type == "SecureString"
 
   locals {
-    unset_key      = attrs.key_id != null && attrs.key_id != ""
-    resource_key   = local.unset_key ? core::getresources("aws_kms_key", { key_id = attrs.key_id }) : false
-    datasource_key = local.resource_key ? core::try(core::getdatasource("aws_kms_key", { key_id = attrs.key_id }), null) : null
+    key_id        = core::try(attrs.key_id, null)
+    key_is_set    = local.key_id != null && local.key_id != ""
+    resource_keys = local.key_is_set ? core::getresources("aws_kms_key", {}) : []
+    key_in_plan   = core::length([for k in local.resource_keys : k
+                      if core::try(k.arn, "") == local.key_id ||
+                         core::try(k.id, "") == local.key_id]) > 0
+    datasource_key = local.key_is_set && !local.key_in_plan ? core::try(core::getdatasource("aws_kms_key", { key_id = local.key_id }), null) : null
   }
 
   enforce {
-    condition     = !local.unset_key
+    condition     = local.key_is_set
     error_message = "SSM SecureString parameters must specify a customer-managed KMS key via 'key_id'. Leaving it blank defaults to the AWS-managed 'aws/ssm' key."
-    info_message  = "unset_key: ${local.unset_key}"
   }
 
   enforce {
-    condition     = local.resource_key != false || core::try(local.datasource_key.key_manager != "AWS", false)
-    error_message = "SSM SecureString parameters must specify a customer-managed KMS key via 'key_id'. Leaving it blank defaults to the AWS-managed 'aws/ssm' key."
-    info_message  = "value"
+    condition     = !local.key_is_set || local.key_in_plan || core::try(local.datasource_key.key_manager != "AWS", false)
+    error_message = "SSM SecureString parameter 'key_id' must reference a customer-managed KMS key. The key '${local.key_id}' is managed by AWS and is not permitted."
   }
 
 }
