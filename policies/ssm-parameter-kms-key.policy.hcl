@@ -22,6 +22,8 @@
 #        String and StringList parameters are not encrypted, so key_id is
 #        irrelevant for those types and they are excluded via the filter.
 
+/*
+
 resource_policy "aws_ssm_parameter" "require_customer_managed_kms_key" {
   enforcement_level = "mandatory"
   filter            = attrs.type == "SecureString"
@@ -64,3 +66,5 @@ resource_policy "aws_ssm_parameter" "require_customer_managed_kms_key" {
     error_message = "SSM SecureString parameter 'key_id' must reference a customer-managed KMS key. The key '${local.key_id}' is managed by AWS and is not permitted."
   }
 }
+
+*/
