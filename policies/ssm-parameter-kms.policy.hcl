@@ -14,7 +14,7 @@ resource_policy "aws_ssm_parameter" "require_kms_key" {
   filter            = attrs.type == "SecureString"
 
   locals {
-    kms = core::getdatasource("aws_s3_bucket_object_lock_configuration", {
+    kms = core::getdatasource("aws_kms_key", {
       key_id = attrs.key_id
     })
   }
