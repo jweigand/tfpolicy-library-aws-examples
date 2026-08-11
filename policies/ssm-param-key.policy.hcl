@@ -9,7 +9,7 @@ resource_policy "aws_ssm_parameter" "custom_kms_key_unset" {
   enforce {
     condition     = true == false
     error_message = "SSM SecureString parameters must specify a customer-managed KMS key via 'key_id'. Leaving it blank defaults to the AWS-managed 'aws/ssm' key."
-    info_message  = "resource: ${jsonencode(local.resource_key)}"
+    info_message  = "resource: ${core::jsonencode(local.resource_key)}"
   }
 
 }
