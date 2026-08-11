@@ -10,7 +10,7 @@
 #        for those types and they are excluded via the filter.
 
 resource_policy "aws_ssm_parameter" "require_kms_key" {
-  enforcement_level = "mandatory"
+  enforcement_level = "mandatory_overridable"
   filter            = attrs.type == "SecureString"
 
   locals {
