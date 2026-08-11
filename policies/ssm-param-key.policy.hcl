@@ -3,13 +3,13 @@ resource_policy "aws_ssm_parameter" "custom_kms_key_unset" {
   filter            = attrs.type == "SecureString"
 
   locals {
-    resource_key = core::getresources("aws_kms_key", { key_id = attrs.key_id })
+    resource_key = core::try(core::length(core::getresources("aws_kms_key", { key_id = attrs.key_id })), 0)
   }
 
   enforce {
     condition     = true == false
     error_message = "SSM SecureString parameters must specify a customer-managed KMS key via 'key_id'. Leaving it blank defaults to the AWS-managed 'aws/ssm' key."
-    info_message  = "resource: ${core::jsonencode(local.resource_key)}"
+    info_message  = "resource: ${local.resource_key}"
   }
 
 }
