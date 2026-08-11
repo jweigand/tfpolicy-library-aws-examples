@@ -3,7 +3,9 @@ resource_policy "aws_ssm_parameter" "custom_kms_key_unset" {
   filter            = attrs.type == "SecureString"
 
   locals {
-    resource_key = core::try(core::length(core::getresources("aws_kms_key", { key_id = attrs.key_id })), 0)
+    resource_key = core::try(core::length([for k in core::getresources("aws_kms_key", {}) : k
+                     if core::try(k.arn, "") == attrs.key_id ||
+                        core::try(k.id, "") == attrs.key_id]), 0)
   }
 
   enforce {
